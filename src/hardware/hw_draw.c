@@ -567,9 +567,14 @@ void HWR_FadeScreenMenuBack(UINT16 color, UINT8 strength)
     }
     else // Do TRANSMAP** fade.
     {
-        Surf.PolyColor.rgba = pLocalPalette[color].rgba;
+        if (HWR_ShouldUsePaletteRendering()) 
+			Surf.PolyColor.rgba = pLocalPalette[color&0xFF].rgba;
+		else
+			Surf.PolyColor.rgba = pLocalPalette[color].rgba;
+		
         Surf.PolyColor.s.alpha = (UINT8)(strength*25.5f);
     }
+
     HWD.pfnDrawPolygon(&Surf, v, 4, PF_NoTexture|PF_Modulated|PF_Translucent|PF_NoDepthTest, false);
 }
 
@@ -960,11 +965,13 @@ void HWR_DrawConsoleFill(INT32 x, INT32 y, INT32 w, INT32 h, UINT32 color, INT32
 // -----------------+
 // HWR_DrawFill     : draw flat coloured rectangle, with no texture
 // -----------------+
+// alug: now with translucency support X)
 void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color)
 {
 	FOutVector v[4];
 	FSurfaceInfo Surf;
 	float fx, fy, fw, fh;
+	UINT8 alphalevel = ((color & V_ALPHAMASK) >> V_ALPHASHIFT);
 
 	if (w < 0 || h < 0)
 		return; // consistency w/ software
@@ -1061,8 +1068,15 @@ void HWR_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 color)
 
 	Surf.PolyColor = V_GetColor(color);
 
-	HWD.pfnDrawPolygon(&Surf, v, 4,
-		PF_Modulated|PF_NoTexture|PF_NoDepthTest, false);
+	if (alphalevel)
+	{
+		if (alphalevel == 13) Surf.PolyColor.s.alpha = softwaretranstogl_lo[hudtrans];
+		else if (alphalevel == 14) Surf.PolyColor.s.alpha = softwaretranstogl[hudtrans];
+		else if (alphalevel == 15) Surf.PolyColor.s.alpha = softwaretranstogl_hi[hudtrans];
+		else Surf.PolyColor.s.alpha = softwaretranstogl[10-alphalevel];
+	}
+
+	HWD.pfnDrawPolygon(&Surf, v, 4, PF_NoTexture|PF_Modulated|PF_Translucent|PF_NoDepthTest, false);
 }
 
 #ifdef HAVE_PNG

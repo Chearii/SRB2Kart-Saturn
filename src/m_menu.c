@@ -1392,7 +1392,7 @@ static const char* OP_VideoTooltips[] =
 	"How far away weather is drawn.",
 	"Toggle being able to see the sky.",
 	"Player field of view.",
-	"Show current game framerate.",
+	"Show current game framerate and select the style.",
 	"Sync game framerate to refresh rate of monitor.",
 	"Set manual framerate cap.",
 	"Size of drift spark pulse.",
@@ -1443,8 +1443,7 @@ static menuitem_t OP_ExpOptionsMenu[] =
 	{IT_STRING | IT_CVAR, 	NULL, "FFloorclip", 					&cv_ffloorclip, 		 	 85},
 	{IT_STRING | IT_CVAR, 	NULL, "Spriteclip", 					&cv_spriteclip, 		 	 95},
 #ifdef HWRENDER	
-	{IT_STRING | IT_CVAR, 	NULL, "Screen Textures", 				&cv_grscreentextures, 		 65},
-	{IT_STRING | IT_CVAR, 	NULL, "VHS effect", 					&cv_grvhseffect, 		 	 75},
+	{IT_STRING | IT_CVAR, 	NULL, "Screen Textures", 				&cv_grscreentextures, 		 75},
 	
 	{IT_STRING | IT_CVAR, 	NULL, "Splitwall/Slope texture fix",	&cv_splitwallfix, 		 	 95},
 	{IT_STRING | IT_CVAR, 	NULL, "Slope midtexture peg fix", 		&cv_slopepegfix, 		 	105},
@@ -1458,15 +1457,14 @@ static const char* OP_ExpTooltips[] =
 	NULL,
 	"Should weather be interpolated? Weather should look about the\nsame but perform a bit better when disabled.",
 	"When weather is on this will cut the object amount used in half.",
-	"Show a VHS-like effect when the game is paused or youre rewinding replays.",
+	"Show a VHS-like effect when the game is paused\n or youre rewinding replays.",
 	"Hides 3DFloors which are not visible\npotentially resulting in a performance boost.",
 	"Hides Sprites which are not visible\npotentially resulting in a performance boost.",
 #ifdef HWRENDER
 	"Should the game do Screen Textures? Provides a good boost to frames\nat the cost of some visual effects not working when disabled.",
-	"Show a VHS-like effect when the game is paused or youre rewinding replays.",
-	"Fixes issues that resulted in Textures sticking from the ground sometimes.\n This may be CPU heavy and result in worse performance in some cases.",
+	"Fixes issues that resulted in Textures sticking from the\nground sometimes.\nThis may be CPU heavy and result in worse performance in some cases.",
 	"Fixes issues that resulted in Textures not being properly skewed\n example: Fences on slopes that didnt show proper.\n This may be CPU heavy and result in worse performance in some cases.",
-	"Fixes issues that resulted in Textures on Floor over Floors ZFighting heavily.",
+	"Fixes issues that resulted in Textures on Floor over Floors\nZFighting heavily.",
 	"Toggle for FOF wall cutoff with slopes.",
 #endif
 };
@@ -1481,7 +1479,6 @@ enum
 	op_exp_sprclip,
 #ifdef HWRENDER
 	op_exp_grscrtx,
-	op_exp_grvhs,
 	op_exp_spltwal,
 	op_exp_pegging,
 	op_exp_fofzfight,
@@ -1762,23 +1759,24 @@ static menuitem_t OP_HUDOptionsMenu[] =
 static menuitem_t OP_ChatOptionsMenu[] =
 {
 	// will ANYONE who doesn't know how to use the console want to touch this one?
-	{IT_STRING | IT_CVAR, NULL, "Chat Mode",				&cv_consolechat,		10}, // nonetheless...
+	{IT_STRING | IT_CVAR, NULL, "Chat Mode",				&cv_consolechat,		5}, // nonetheless...
 
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Chat Box Width",			&cv_chatwidth,			25},
+	                      NULL, "Chat Box Width",			&cv_chatwidth,			20},
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER,
-	                      NULL, "Chat Box Height",			&cv_chatheight,			35},
+	                      NULL, "Chat Box Height",			&cv_chatheight,			30},
 
-	{IT_STRING | IT_CVAR, NULL, "Chat Background Tint",		&cv_chatbacktint,		50},
-	{IT_STRING | IT_CVAR, NULL, "Message Fadeout Time",		&cv_chattime,			60},
-	{IT_STRING | IT_CVAR, NULL, "Spam Protection",			&cv_chatspamprotection,	70},
-	{IT_STRING | IT_CVAR, NULL, "Max Chat Messages",		&cv_chatlogsize,		80},
+	{IT_STRING | IT_CVAR, NULL, "Chat Background Tint",		&cv_chatbacktint,		45},
+	{IT_STRING | IT_CVAR, NULL, "Message Fadeout Time",		&cv_chattime,			55},
+	{IT_STRING | IT_CVAR, NULL, "Spam Protection",			&cv_chatspamprotection,	65},
+	{IT_STRING | IT_CVAR, NULL, "Max Chat Messages",		&cv_chatlogsize,		75},
 
-	{IT_STRING | IT_CVAR, NULL, "Local ping display",		&cv_showping,			100},	// shows ping next to framerate if we want to.
-	{IT_STRING | IT_CVAR, NULL, "Ping measurement",			&cv_pingmeasurement,	110},
-	{IT_STRING | IT_CVAR, NULL, "Ping icon",				&cv_pingicon,			120},
-	
-	{IT_STRING | IT_CVAR, NULL, "Show IP addresses in playerlist",		&cv_shownodeip,	140},
+	{IT_STRING | IT_CVAR, NULL, "Local ping display",		&cv_showping,			95},	// shows ping above the framerate if we want to.
+	{IT_STRING | IT_CVAR, NULL, "Ping display style",		&cv_pingstyle,			105},
+	{IT_STRING | IT_CVAR, NULL, "Ping measurement",			&cv_pingmeasurement,	115},
+	{IT_STRING | IT_CVAR, NULL, "Ping icon",				&cv_pingicon,			125},
+
+	{IT_STRING | IT_CVAR, NULL, "Show IP address in playerlist",		&cv_shownodeip,	135},
 };
 
 static const char* OP_ChatOptionsTooltips[] =
@@ -1791,6 +1789,7 @@ static const char* OP_ChatOptionsTooltips[] =
 	"Spam protection for in-game chat.",
 	"Maxiumum amount of chat messages to look back at.",
 	"Show player ping.",
+	"Choose the looks of the ping display.", // this is ass idk english lmao
 	"Measurement used for ping.",
 	"Visibility of ping icon.",
 	"Should Player IP addresses be printed when using\nthe nodes or listplayers command?",
@@ -2003,7 +2002,7 @@ static menuitem_t OP_SaturnMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Show Cecho Messages", 					&cv_cechotoggle, 			80},
 	{IT_STRING | IT_CVAR, NULL, "Show Localskin Menus", 				&cv_showlocalskinmenus, 	85},
 	
-	{IT_STRING | IT_CVAR, NULL, "Midnight Channel Flicker Effect", 		&cv_lessflicker, 		 	95},
+	{IT_STRING | IT_CVAR, NULL, "Less Midnight Channel Flicker", 		&cv_lessflicker, 		 	95},
 
 	{IT_SUBMENU|IT_STRING,	NULL,	"Sprite Distortion...", 			&OP_PlayerDistortDef,	 	105},
 	{IT_SUBMENU|IT_STRING,	NULL,	"Hud Offsets...", 					&OP_HudOffsetDef,		 	110},
@@ -2059,21 +2058,23 @@ static menuitem_t OP_PlayerDistortMenu[] =
 {
 	{IT_HEADER, NULL, "Sprite Distortion", NULL, 0},
 
-	{IT_STRING | IT_CVAR, 	NULL, 	"Rotate Objects on Slopes",       &cv_sloperoll, 	    20},
-	{IT_STRING | IT_CVAR, 	NULL, 	"Slope Rotation Distance",        &cv_sloperolldist,    35},
-	{IT_STRING | IT_CVAR, 	NULL, 	"Rotate Players when Sliptiding", &cv_sliptideroll, 	50},
-	{IT_STRING | IT_CVAR,	NULL,	"Rotate Sparks and Boost Trails", &cv_sparkroll,        65},
-	{IT_STRING | IT_CVAR,	NULL,	"Player Stretch Factor",	      &cv_gravstretch,      80},
-	{IT_STRING | IT_CVAR,	NULL,	"Squish Sound Effect",	      	  &cv_slamsound,        95},
-	{IT_STRING | IT_CVAR, 	NULL, 	"Saltyhop", &cv_saltyhop, 	110},
-	{IT_STRING | IT_CVAR,	NULL,	"Saltyhop Sound Effect",	      &cv_saltyhopsfx,      125},
-	{IT_STRING | IT_CVAR,	NULL,	"Saltyhop Squish",	      	  	&cv_saltysquish,        140},
+	{IT_STRING | IT_CVAR, 	NULL, 	"Sprite Rotation",       	  	  &cv_spriteroll, 	    15},
+	{IT_STRING | IT_CVAR, 	NULL, 	"Sprite Slope Rotation",       	  &cv_sloperoll, 	    30},
+	{IT_STRING | IT_CVAR, 	NULL, 	"Slope Rotation Distance",        &cv_sloperolldist,    45},
+	{IT_STRING | IT_CVAR, 	NULL, 	"Rotate Players when Sliptiding", &cv_sliptideroll, 	60},
+	{IT_STRING | IT_CVAR,	NULL,	"Rotate Sparks and Boost Trails", &cv_sparkroll,        75},
+	{IT_STRING | IT_CVAR,	NULL,	"Player Stretch Factor",	      &cv_gravstretch,      90},
+	{IT_STRING | IT_CVAR,	NULL,	"Squish Sound Effect",	      	  &cv_slamsound,        105},
+	{IT_STRING | IT_CVAR, 	NULL, 	"Saltyhop", 					  &cv_saltyhop, 		120},
+	{IT_STRING | IT_CVAR,	NULL,	"Saltyhop Sound Effect",	      &cv_saltyhopsfx,      135},
+	{IT_STRING | IT_CVAR,	NULL,	"Saltyhop Squish",	      	  	  &cv_saltysquish,      150},
 };
 
 static const char* OP_PlayerDistortTooltips[] =
 {
 	NULL,
-	"Object rotation on slopes.",
+	"Sprite rotation features.",
+	"Sprite rotation on slopes. Can either be just players or all objects.",
 	"Distance object rotation should be visable.",
 	"Player rotation when sliptiding.",
 	"Rotation of a player's boost trails and drift sparks.",
@@ -2086,9 +2087,12 @@ static const char* OP_PlayerDistortTooltips[] =
 
 enum
 {
+	spriteheader,
+	spriterotate,
 	sloperotate,
 	slrotatedist,
 	sliptide,
+	sparkrotate,
 	stretchyplayer,
 	squishsound,
 	salthmmm,
@@ -2113,8 +2117,8 @@ static menuitem_t OP_HudOffsetMenu[] =
 	{IT_STRING | IT_CVAR, 	NULL, 	"Vertical Offset",       		&cv_laps_yoffset,     	60},
 
 	{IT_HEADER, NULL, "Speedometer", NULL, 70},
-	{IT_STRING | IT_CVAR, 	NULL, 	"Horizontal Offset",  			&cv_spdm_xoffset, 		75},
-	{IT_STRING | IT_CVAR,	NULL,	"Vertical Offset",	  			&cv_spdm_yoffset,     	80},
+	{IT_STRING | IT_CVAR, 	NULL, 	"Horizontal Offset",  			&cv_speed_xoffset, 		75},
+	{IT_STRING | IT_CVAR,	NULL,	"Vertical Offset",	  			&cv_speed_yoffset,     	80},
 
 	{IT_HEADER, NULL, "Mini Rankings", NULL, 90},
 	{IT_STRING | IT_CVAR, 	NULL, 	"Horizontal Offset",  			&cv_face_xoffset, 		95},
@@ -2137,13 +2141,14 @@ static menuitem_t OP_SaturnCreditsMenu[] =
 {
 	{IT_HEADER, NULL, "Saturn Credits", 									NULL,       0},
 	
-	{IT_HEADER, NULL, "Thanks to all contributers <3", 											NULL,      25},
+	{IT_HEADER, NULL, "Thanks to all contributers <3", 											NULL,      15},
 	
-	{IT_STRING2+IT_SPACE, NULL, 	"alufolie91 aka Alug",      						NULL, 	   30},
-	{IT_STRING2+IT_SPACE, NULL, 	"Indev",        									NULL,      40},
-	{IT_STRING2+IT_SPACE, NULL, 	"Haya",       										NULL,      50},
-	{IT_STRING2+IT_SPACE, NULL, 	"Nepdisk", 		 									NULL, 	   60},
-	{IT_STRING2+IT_SPACE, NULL, 	"xyzzy",     										NULL, 	   70},
+	{IT_STRING2+IT_SPACE, NULL, 	"alufolie91 aka Alug",      						NULL, 	   20},
+	{IT_STRING2+IT_SPACE, NULL, 	"Indev",        									NULL,      30},
+	{IT_STRING2+IT_SPACE, NULL, 	"Haya",       										NULL,      40},
+	{IT_STRING2+IT_SPACE, NULL, 	"Nepdisk", 		 									NULL, 	   50},
+	{IT_STRING2+IT_SPACE, NULL, 	"xyzzy",     										NULL, 	   60},
+	{IT_STRING2+IT_SPACE, NULL, 	"Chearii", 		 									NULL, 	   70},
 	
 	
 	{IT_STRING+IT_SPACE, NULL, "", 									NULL,       73},	// dummy text 
@@ -3127,20 +3132,26 @@ void Addons_option_Onchange(void)
 
 void PDistort_menu_Onchange(void)
 {
-	UINT16 status;
-
-	if (cv_sloperoll.value)
+	if (!cv_spriteroll.value)
 	{
-			status = IT_STRING | IT_CVAR;
+		OP_PlayerDistortMenu[sloperotate].status = IT_GRAYEDOUT;
+		OP_PlayerDistortMenu[sliptide].status = IT_GRAYEDOUT;
 	}
 	else
 	{
-			status = IT_GRAYEDOUT;
+		OP_PlayerDistortMenu[sloperotate].status = IT_STRING | IT_CVAR;
+		OP_PlayerDistortMenu[sliptide].status = IT_STRING | IT_CVAR;
 	}
 
-	// enable/disable rolldist and sparkroll options
-	OP_PlayerDistortMenu[2].status = status;
-	OP_PlayerDistortMenu[4].status = status;
+	if ((cv_sloperoll.value) && (cv_spriteroll.value)) //enable/disable sloperotate distance
+		OP_PlayerDistortMenu[slrotatedist].status = IT_STRING | IT_CVAR;
+	else
+		OP_PlayerDistortMenu[slrotatedist].status = IT_GRAYEDOUT;
+		
+	if ((cv_sloperoll.value == 2) && (cv_spriteroll.value)) //enable/disable sparkroll depending on which setting
+		OP_PlayerDistortMenu[sparkrotate].status = IT_STRING | IT_CVAR;
+	else
+		OP_PlayerDistortMenu[sparkrotate].status = IT_GRAYEDOUT;
 }
 
 void Bird_menu_Onchange(void)
@@ -3148,26 +3159,18 @@ void Bird_menu_Onchange(void)
 	UINT16 status;
 
 	if (cv_tilting.value)
-	{
 		status = IT_STRING | IT_CVAR;
-	}
 	else
-	{
 		status = IT_GRAYEDOUT;
-	}
 
 	OP_TiltMenu[tiltwturning].status = status;
 	OP_TiltMenu[smoothening].status = status;
 	OP_TiltMenu[tiltwquakes].status = status;
 
 	if (cv_fading.value)
-	{
 		status = IT_STRING | IT_CVAR;
-	}
 	else
-	{
 		status = IT_GRAYEDOUT;
-	}
 
 	OP_AdvancedBirdMenu[fadeinvinc].status = status;
 	OP_AdvancedBirdMenu[fadegrow].status = status;
@@ -3194,13 +3197,9 @@ void Saturn_menu_Onchange(void)
 	UINT16 status;
 
 	if (cv_colorizedhud.value)
-	{
-			status = IT_STRING | IT_CVAR;
-	}
+		status = IT_STRING | IT_CVAR;
 	else
-	{
-			status = IT_GRAYEDOUT;
-	}
+		status = IT_GRAYEDOUT;
 	
 	OP_SaturnMenu[sm_coloritem].status = status;
 	OP_SaturnMenu[sm_colorhud_customcolor].status = status;
@@ -4128,7 +4127,7 @@ void M_StartControlPanel(void)
 		MPauseMenu[mpause_addons].alphaKey = 8;
 		
 		if (IsPlayerAdmin(consoleplayer))
-			MPauseMenu[mpause_addlocalskins].alphaKey = 8;
+			MPauseMenu[mpause_addlocalskins].alphaKey = 16;
 		else
 			MPauseMenu[mpause_addlocalskins].alphaKey = 24;
 	
@@ -4424,7 +4423,6 @@ void M_Init(void)
 	{
 		OP_VideoOptionsMenu[op_video_ogl].status = IT_DISABLED;
 		OP_ExpOptionsMenu[op_exp_grscrtx].status = IT_DISABLED;
-		OP_ExpOptionsMenu[op_exp_grvhs].status = IT_DISABLED;
 		OP_ExpOptionsMenu[op_exp_spltwal].status = IT_DISABLED;
 		OP_ExpOptionsMenu[op_exp_pegging].status = IT_DISABLED;
 		OP_ExpOptionsMenu[op_exp_fofzfight].status = IT_DISABLED;
@@ -4432,7 +4430,6 @@ void M_Init(void)
 	}
 	
 	if (rendermode == render_opengl){
-		OP_ExpOptionsMenu[op_exp_vhs].status = IT_DISABLED;
 		OP_ExpOptionsMenu[op_exp_ffclip].status = IT_DISABLED;
 		OP_ExpOptionsMenu[op_exp_sprclip].status = IT_DISABLED;
 	}

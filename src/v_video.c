@@ -42,7 +42,7 @@ UINT8 *screens[5];
 static CV_PossibleValue_t gamma_cons_t[] = {{0, "MIN"}, {4, "MAX"}, {0, NULL}};
 static void CV_usegamma_OnChange(void);
 
-static CV_PossibleValue_t fps_cons_t[] = {{0, "No"}, {1, "Normal"}, {2, "Compact"}, {0, NULL}};
+static CV_PossibleValue_t fps_cons_t[] = {{0, "No"}, {1, "Normal"}, {2, "Compact"}, {3, "Old"}, {4, "Old Compact"}, {0, NULL}};
 consvar_t cv_ticrate = {"showfps", "No", CV_SAVE, fps_cons_t, NULL, 0, NULL, NULL, 0, 0, NULL};
 
 consvar_t cv_usegamma = {"gamma", "0", CV_SAVE|CV_CALL, gamma_cons_t, CV_usegamma_OnChange, 0, NULL, NULL, 0, 0, NULL};
@@ -207,7 +207,7 @@ void V_SetPalette(INT32 palettenum)
 		{
 			// reset our palette lookups n shit
 			gl_palette_initialized = false;
-			InitPalette(palettenum, true);
+			HWR_InitPalette(palettenum, true);
 		}
 		else
 			HWR_SetPalette(&pLocalPalette[palettenum*256]);
@@ -229,7 +229,7 @@ void V_SetPaletteLump(const char *pal)
 		{
 			// reset our palette lookups n shit
 			gl_palette_initialized = false;
-			InitPalette(0, false);
+			HWR_InitPalette(0, false);
 		}
 		
 		HWR_SetPalette(pLocalPalette);
@@ -693,10 +693,12 @@ void V_DrawBlock(INT32 x, INT32 y, INT32 scrn, INT32 width, INT32 height, const 
 //
 // Fills a box of pixels with a single color, NOTE: scaled to screen size
 //
+// alug: now with translucency support X)
 void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 {
 	UINT8 *dest;
 	const UINT8 *deststop;
+	UINT32 alphalevel = ((c & V_ALPHAMASK) >> V_ALPHASHIFT);
 
 	if (rendermode == render_none)
 		return;
@@ -750,6 +752,7 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 
 	if (x >= vid.width || y >= vid.height)
 		return; // off the screen
+	
 	if (x < 0)
 	{
 		w += x;
@@ -763,18 +766,44 @@ void V_DrawFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c)
 
 	if (w <= 0 || h <= 0)
 		return; // zero width/height wouldn't draw anything
+	
 	if (x + w > vid.width)
-		w = vid.width - x;
+		w = vid.width-x;
 	if (y + h > vid.height)
-		h = vid.height - y;
+		h = vid.height-y;
 
 	dest = screens[0] + y*vid.width + x;
 	deststop = screens[0] + vid.rowbytes * vid.height;
 
-	c &= 255;
+	if (alphalevel)
+	{
+		if (alphalevel == 13)
+			alphalevel = hudminusalpha[cv_translucenthud.value];
+		else if (alphalevel == 14)
+			alphalevel = 10 - cv_translucenthud.value;
+		else if (alphalevel == 15)
+			alphalevel = hudplusalpha[cv_translucenthud.value];
 
-	for (;(--h >= 0) && dest < deststop; dest += vid.width)
-		memset(dest, c, w * vid.bpp);
+		if (alphalevel >= 10)
+			return; // invis
+	}
+
+	c &= 255;
+	
+	if (alphalevel)
+	{
+		const UINT8 *fadetable = ((UINT8 *)transtables + ((alphalevel-1)<<FF_TRANSSHIFT) + (c*256));
+		for (;(--h >= 0) && dest < deststop; dest += vid.width)
+		{
+			for (x = 0; x < w; x++)
+				dest[x] = fadetable[dest[x]];
+		}
+	}
+	else
+	{
+		for (;(--h >= 0) && dest < deststop; dest += vid.width)
+			memset(dest, c, w * vid.bpp);
+	}
 }
 
 #ifdef HWRENDER
@@ -1153,26 +1182,17 @@ void V_DrawVhsEffect(boolean rewind)
 	if (rewind)
 		V_DrawVhsEffect(false); // experimentation
 
-	if (R_UsingFrameInterpolation()) // omg i fucking hate interp so much, its a bit smoother but still not great whatever, atleast like this shit wont completely go nuts when youre on high framerates
+	if (renderisnewtic)
 	{
-		if (renderisnewtic)
-		{
-			upbary -= FixedMul(vid.dupy * (rewind ? 3 : 1.8f), 22937*3);
-			downbary += FixedMul(vid.dupy * (rewind ? 2 : 1), 22937*3);
-		}
-	}
-	else
-	{
-		upbary -= vid.dupy * (rewind ? 3 : 1.8f);
-		downbary += vid.dupy * (rewind ? 2 : 1);
+		upbary -= (vid.dupy * (rewind ? 3 : 1.8f));
+		downbary += (vid.dupy * (rewind ? 2 : 1));
 	}
 
-			
 	if (upbary < -barsize) upbary = vid.height;
 	if (downbary > vid.height) downbary = -barsize;
 
 #ifdef HWRENDER
-	if ((rendermode == render_opengl) && (cv_grvhseffect.value))
+	if (rendermode == render_opengl)
 	{
 		HWR_RenderVhsEffect(upbary, downbary, updistort, downdistort, barsize);
 		return;

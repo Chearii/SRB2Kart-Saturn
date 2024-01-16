@@ -1451,7 +1451,7 @@ void I_FinishUpdate(void)
 	if (cv_ticrate.value && st_overlay)
 		SCR_DisplayTicRate();
 
-	if (cv_showping.value && netgame && consoleplayer != serverplayer)
+	if (cv_showping.value && netgame && consoleplayer != serverplayer && st_overlay)
 		SCR_DisplayLocalPing();
 
 #ifdef HAVE_DISCORDRPC
@@ -2151,6 +2151,7 @@ void I_StartupGraphics(void)
 		HWD.pfnStartBatching = hwSym("StartBatching",NULL);
 		HWD.pfnRenderBatches = hwSym("RenderBatches",NULL);
 
+		HWD.pfnInitPalette = hwSym("InitPalette",NULL);
 		HWD.pfnAddLightTable = hwSym("AddLightTable",NULL);
 		HWD.pfnClearLightTableCache = hwSym("ClearLightTableCache",NULL);
 

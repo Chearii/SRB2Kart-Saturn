@@ -6263,7 +6263,7 @@ void P_RollPitchMobj(mobj_t* mobj)
     if (cv_sloperolldist.value > 0)
         usedist = true;
 
-    if (cv_sloperoll.value == 1)
+    if ((cv_spriteroll.value) && (cv_sloperoll.value == 2))
     {
         K_RollMobjBySlopes(mobj, usedist);
     }
@@ -6281,6 +6281,9 @@ angle_t P_MobjPitchAndRoll(mobj_t *mobj)
     angle_t ang = 0;
 	angle_t camang = 0;
 	angle_t return_angle = 0;
+	
+	if (!cv_spriteroll.value)
+		return 0;
 
     if (P_MobjWasRemoved(mobj))
         return 0;
@@ -11504,7 +11507,7 @@ void P_SpawnMapThing(mapthing_t *mthing)
 	mobj = P_SpawnMobj(x, y, z, i);
 
 	if (!mobj || P_MobjWasRemoved(mobj)) {
-		CONS_Alert(CONS_WARNING, "Failed to spawn map thing #%d at %d, %d\n", mthing->type, x>>FRACBITS, y>>FRACBITS);
+		CONS_Alert(CONS_ERROR, "Failed to spawn map thing #%d at %d, %d. This will crash vanilla clients!\n", mthing->type, x>>FRACBITS, y>>FRACBITS);
 		return;
 	}
 
