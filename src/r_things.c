@@ -1768,7 +1768,6 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 	fixed_t this_scale;
 
 	INT32 dist = 1;
-	INT32 trans;
 
 	if (cv_maxinterpdist.value)
 		dist = R_QuickCamDist(thing->x, thing->y);
@@ -1868,12 +1867,6 @@ static void R_ProjectPrecipitationSprite(precipmobj_t *thing)
 		if (P_PointOnLineSide(interp.x, interp.y, portalclipline) != 0)
 			return;
 	}
-
-	// Determine the translucency value.
-	if (thing->frame & FF_TRANSMASK)
-		trans = (thing->frame & FF_TRANSMASK) >> FF_TRANSSHIFT;
-	else
-		trans = 0;
 
 	//SoM: 3/17/2000: Disregard sprites that are out of view..
 	gzt = interp.z + FixedMul(spritecachedinfo[lump].topoffset, this_scale);
